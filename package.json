@@ -5,8 +5,8 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "prisma generate && tsc && tsc-alias",
-    "start": "node dist/server.js",
+    "build": "prisma generate && tsc && tsc-alias && xcopy /Y src\\config\\paths.js dist\\src\\config\\",
+    "start": "node -r ./register.js dist/server.js",
     "format": "prettier --write \"src/**/*.{ts,js,json}\" \"*.{json,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,js,json}\" \"*.{json,md}\"",
     "lint": "eslint \"src/**/*.ts\"",
@@ -48,6 +48,7 @@
     "fastify-type-provider-zod": "^6.1.0",
     "jsonwebtoken": "^9.0.2",
     "minio": "^8.0.6",
+    "module-alias": "^2.2.3",
     "postgres": "^3.4.8",
     "uuid": "^13.0.0",
     "zod": "^4.3.5"
