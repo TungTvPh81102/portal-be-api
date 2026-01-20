@@ -1,5 +1,6 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client/edge';
 import { env } from '@/config/env';
+import prismaConfig from '../../prisma/prisma.config';
 
 /**
  * Prisma Client singleton instance
@@ -17,6 +18,7 @@ class PrismaService {
     if (!PrismaService.instance) {
       PrismaService.instance = new PrismaClient({
         log: env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+        ...prismaConfig,
       });
 
       // Handle graceful shutdown

@@ -5,7 +5,7 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc && tsc-alias",
+    "build": "prisma generate && tsc && tsc-alias",
     "start": "node dist/server.js",
     "format": "prettier --write \"src/**/*.{ts,js,json}\" \"*.{json,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,js,json}\" \"*.{json,md}\"",
@@ -22,6 +22,7 @@
     "db:introspect": "drizzle-kit introspect",
     "db:pull": "drizzle-kit pull",
     "db:pull:verbose": "drizzle-kit pull --verbose",
+    "prisma:generate": "prisma generate",
     "g": "tsx scripts/generate-module.ts",
     "kill": "kill-port 3000"
   },
@@ -67,6 +68,7 @@
     "kill-port": "^2.0.1",
     "pino-pretty": "^13.1.3",
     "prettier": "^3.8.0",
+    "prisma": "^7.2.0",
     "tsc-alias": "^1.8.16",
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.19.2",
