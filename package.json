@@ -5,7 +5,7 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "prisma generate && tsc && tsc-alias && xcopy /Y src\\config\\paths.js dist\\src\\config\\",
+    "build": "prisma generate && tsc && tsc-alias && node copy-paths.js",
     "start": "node -r ./register.js dist/server.js",
     "format": "prettier --write \"src/**/*.{ts,js,json}\" \"*.{json,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,js,json}\" \"*.{json,md}\"",
