@@ -23,7 +23,6 @@ export const registerRoutes = async (fastify: FastifyInstance): Promise<void> =>
     await instance.register(authRoutes, { prefix: '/api' });
     await instance.register(usersRoutes, { prefix: '/api' });
     
-    // Admin routes - Monitoring & Logs (Laravel Telescope-like)
-    await instance.register(logsRoutes, { prefix: '/api/admin/logs' });
+    // await instance.register(logsRoutes, { prefix: '/api/admin/logs' });
   });
 };
