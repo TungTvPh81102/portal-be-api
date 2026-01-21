@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { AuthController } from '@/modules/auth/auth.controller';
 import { authMiddleware } from '@/common/middlewares/auth.middleware';
-import { loginSchema, registerSchema, refreshTokenSchema } from '@/modules/auth/auth.schema';
+import { loginSchema, registerSchema, refreshTokenSchema, verifyEmailSchema, forgotPasswordSchema, resetPasswordSchema } from '@/modules/auth/auth.schema';
 
 /**
  * Auth routes
@@ -82,6 +82,52 @@ export const authRoutes = async (fastify: FastifyInstance): Promise<void> => {
       },
     },
     handler: authController.logout,
+  });
+
+
+  fastify.post('/auth/verify-email', {
+    schema: {
+      tags: ['Auth'],
+      description: 'Verify user email',
+      body: verifyEmailSchema,
+      response: {
+        200: z.object({
+          message: z.string(),
+          data: z.null(),
+        }),
+      },
+    },
+    handler: authController.verifyEmail,
+  });
+
+  fastify.post('/auth/forgot-password', {
+    schema: {
+      tags: ['Auth'],
+      description: 'Request password reset',
+      body: forgotPasswordSchema,
+      response: {
+        200: z.object({
+          message: z.string(),
+          data: z.null(),
+        }),
+      },
+    },
+    handler: authController.forgotPassword,
+  });
+
+  fastify.post('/auth/reset-password', {
+    schema: {
+      tags: ['Auth'],
+      description: 'Reset password using token',
+      body: resetPasswordSchema,
+      response: {
+        200: z.object({
+          message: z.string(),
+          data: z.null(),
+        }),
+      },
+    },
+    handler: authController.resetPassword,
   });
 
   // Protected routes

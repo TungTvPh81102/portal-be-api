@@ -25,6 +25,8 @@ export const users = pgTable("users", {
 	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 	deletedAt: timestamp("deleted_at", { withTimezone: true, mode: 'string' }),
 	code: varchar({ length: 50 }).default('').notNull(),
+    verificationToken: varchar("verification_token", { length: 255 }),
+    verificationTokenExpiresAt: timestamp("verification_token_expires_at", { withTimezone: true, mode: 'string' }),
 }, (table) => [
 	unique("users_email_key").on(table.email),
 	unique("users_phone_key").on(table.phone),

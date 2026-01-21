@@ -25,8 +25,33 @@ export const refreshTokenSchema = z.object({
 });
 
 /**
+ * Verify Email schema
+ */
+export const verifyEmailSchema = z.object({
+  token: z.string().min(1, 'Token is required'),
+});
+
+/**
+ * Forgot Password schema
+ */
+export const forgotPasswordSchema = z.object({
+  email: z.string().email('Invalid email format'),
+});
+
+/**
+ * Reset Password schema
+ */
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1, 'Token is required'),
+  newPassword: z.string().min(8, 'Password must be at least 8 characters'),
+});
+
+/**
  * Type exports
  */
 export type LoginDto = z.infer<typeof loginSchema>;
 export type RegisterDto = z.infer<typeof registerSchema>;
 export type RefreshTokenDto = z.infer<typeof refreshTokenSchema>;
+export type VerifyEmailDto = z.infer<typeof verifyEmailSchema>;
+export type ForgotPasswordDto = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordDto = z.infer<typeof resetPasswordSchema>;

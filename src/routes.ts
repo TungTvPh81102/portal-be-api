@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { usersRoutes } from '@/modules/users/users.route';
 import { authRoutes } from '@/modules/auth/auth.route';
+import { logsRoutes } from '@/modules/logs/logs.route';
 
 /**
  * Register all application routes
@@ -21,5 +22,8 @@ export const registerRoutes = async (fastify: FastifyInstance): Promise<void> =>
     // Register module routes
     await instance.register(authRoutes, { prefix: '/api' });
     await instance.register(usersRoutes, { prefix: '/api' });
+    
+    // Admin routes - Monitoring & Logs (Laravel Telescope-like)
+    await instance.register(logsRoutes, { prefix: '/api/admin/logs' });
   });
 };

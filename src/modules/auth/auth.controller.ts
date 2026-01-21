@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { AuthService } from '@/modules/auth/auth.service';
-import { loginSchema, registerSchema, refreshTokenSchema, LoginDto, RegisterDto, RefreshTokenDto } from '@/modules/auth/auth.schema';
+import { loginSchema, registerSchema, refreshTokenSchema, verifyEmailSchema, forgotPasswordSchema, resetPasswordSchema, LoginDto, RegisterDto, RefreshTokenDto, VerifyEmailDto, ForgotPasswordDto, ResetPasswordDto } from '@/modules/auth/auth.schema';
 import { ok, created } from '@/common/response/response.helper';
 
 /**
@@ -111,6 +111,58 @@ export class AuthController {
 
       // Return success response
       return ok(reply, user, 'User retrieved successfully');
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  /**
+   * Verify Email
+   * POST /auth/verify-email
+   */
+  verifyEmail = async (
+    request: FastifyRequest<{ Body: VerifyEmailDto }>,
+    reply: FastifyReply
+  ): Promise<FastifyReply> => {
+    try {
+      const validatedData = verifyEmailSchema.parse(request.body);
+      await this.authService.verifyEmail(validatedData.token);
+      return ok(reply, null, 'Email verified successfully');
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  /**
+   * Forgot Password
+   * POST /auth/forgot-password
+   */
+  forgotPassword = async (
+    request: FastifyRequest<{ Body: ForgotPasswordDto }>,
+    reply: FastifyReply
+  ): Promise<FastifyReply> => {
+    try {
+      const validatedData = forgotPasswordSchema.parse(request.body);
+      await this.authService.forgotPassword(validatedData.email);
+      // Always return success to prevent email enumeration
+      return ok(reply, null, 'If the email exists, a reset link has been sent');
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  /**
+   * Reset Password
+   * POST /auth/reset-password
+   */
+  resetPassword = async (
+    request: FastifyRequest<{ Body: ResetPasswordDto }>,
+    reply: FastifyReply
+  ): Promise<FastifyReply> => {
+    try {
+      const validatedData = resetPasswordSchema.parse(request.body);
+      await this.authService.resetPassword(validatedData.token, validatedData.newPassword);
+      return ok(reply, null, 'Password reset successfully');
     } catch (error) {
       throw error;
     }

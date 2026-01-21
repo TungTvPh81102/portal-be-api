@@ -1,10 +1,13 @@
 import { LoginDto, RegisterDto, RefreshTokenDto } from '@/modules/auth/auth.schema';
 import { UsersService } from '@/modules/users/users.service';
-import { comparePassword } from '@/common/utils/bcrypt.helper';
+import { comparePassword, hashPassword } from '@/common/utils/bcrypt.helper';
 import { generateToken, generateRefreshToken, verifyRefreshToken } from '@/common/utils/jwt.helper';
-import { UnauthorizedError } from '@/common/errors/AppError';
-import { db, refreshTokens } from '@/db';
-import { eq } from 'drizzle-orm';
+import { UnauthorizedError, BadRequestError } from '@/common/errors/AppError';
+import { db, refreshTokens, users, passwordResetTokens } from '@/db';
+import { eq, and, gt } from 'drizzle-orm';
+import { emailService } from '@/common/email/email.service';
+import { getVerificationEmailTemplate, getResetPasswordEmailTemplate } from '@/common/email/templates/index';
+import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Auth Service
@@ -125,6 +128,22 @@ export class AuthService {
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
       });
 
+      // Generate verification token and send email
+      const verificationToken = uuidv4();
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+      await db.update(users)
+        .set({ 
+            verificationToken,
+            verificationTokenExpiresAt: expiresAt.toISOString()
+        })
+        .where(eq(users.id, user.id));
+
+      // Send verification email directly
+      const verificationLink = `http://localhost:3000/verify-email?token=${verificationToken}`; // TODO: Use frontend URL from env
+      const html = getVerificationEmailTemplate(user.name || 'User', verificationLink);
+      await emailService.sendMail(user.email, 'Verify your email', html);
+
       // Return user info and tokens
       return {
         user: {
@@ -224,5 +243,92 @@ export class AuthService {
       enable: user.enable || 0,
       createdAt: user.createdAt.toString(),
     };
+  }
+  /**
+   * Verify email
+   */
+  async verifyEmail(token: string): Promise<void> {
+    const user = await db.query.users.findFirst({
+        where: and(
+            eq(users.verificationToken, token),
+            gt(users.verificationTokenExpiresAt, new Date().toISOString())
+        )
+    });
+
+    if (!user) {
+        throw new BadRequestError('Invalid or expired verification token');
+    }
+
+    await db.update(users)
+        .set({ 
+            emailVerifiedAt: new Date().toISOString(),
+            verificationToken: null,
+            verificationTokenExpiresAt: null
+        })
+        .where(eq(users.id, user.id));
+  }
+
+  /**
+   * Forgot password
+   */
+  async forgotPassword(email: string): Promise<void> {
+    const user = await this.usersService.getUserByEmail(email);
+    if (!user) {
+        // Don't reveal if user exists
+        return;
+    }
+
+    const token = uuidv4();
+    const expiresAt = new Date(Date.now() + 1 * 60 * 60 * 1000); // 1 hour
+
+    // Clean up old tokens
+    await db.delete(passwordResetTokens).where(eq(passwordResetTokens.email, email));
+
+    await db.insert(passwordResetTokens).values({
+        email,
+        token,
+        expiresAt: expiresAt.toISOString(),
+        status: 1
+    });
+
+    // Send password reset email directly
+    const resetLink = `http://localhost:3000/reset-password?token=${token}`; // TODO: Use frontend URL from env
+    const html = getResetPasswordEmailTemplate(user.name || 'User', resetLink);
+    await emailService.sendMail(user.email, 'Reset your password', html);
+  }
+
+  /**
+   * Reset password
+   */
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+     // Find valid token
+     const resetToken = await db.select().from(passwordResetTokens)
+        .where(and(
+            eq(passwordResetTokens.token, token),
+            gt(passwordResetTokens.expiresAt, new Date().toISOString()),
+            eq(passwordResetTokens.status, 1)
+        ))
+        .limit(1);
+
+     if (resetToken.length === 0) {
+        throw new BadRequestError('Invalid or expired reset token');
+     }
+
+     const email = resetToken[0].email;
+     const user = await this.usersService.getUserByEmail(email);
+
+     if (!user) {
+         throw new BadRequestError('User not found');
+     }
+
+     const hashedPassword = await hashPassword(newPassword);
+
+     // Update password
+     await db.update(users)
+        .set({ password: hashedPassword })
+        .where(eq(users.id, user.id));
+
+     // Mark token as used (or delete it)
+     await db.delete(passwordResetTokens).where(eq(passwordResetTokens.email, email));
   }
 }

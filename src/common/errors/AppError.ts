@@ -28,6 +28,8 @@ export class BusinessError extends AppError {
   }
 }
 
+export const BadRequestError = BusinessError;
+
 /**
  * Validation Error (422)
  */
