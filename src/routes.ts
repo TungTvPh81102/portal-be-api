@@ -2,6 +2,8 @@ import { FastifyInstance } from 'fastify';
 import { usersRoutes } from '@/modules/users/users.route';
 import { authRoutes } from '@/modules/auth/auth.route';
 import { logsRoutes } from '@/modules/logs/logs.route';
+import { rolesRoutes } from '@/modules/roles/roles.route';
+import { permissionsRoutes } from '@/modules/permissions/permissions.route';
 
 /**
  * Register all application routes
@@ -22,7 +24,8 @@ export const registerRoutes = async (fastify: FastifyInstance): Promise<void> =>
     // Register module routes
     await instance.register(authRoutes, { prefix: '/api' });
     await instance.register(usersRoutes, { prefix: '/api' });
-    
+    await instance.register(rolesRoutes, { prefix: '/api' });
+    await instance.register(permissionsRoutes, { prefix: '/api' });
     // await instance.register(logsRoutes, { prefix: '/api/admin/logs' });
   });
 };
